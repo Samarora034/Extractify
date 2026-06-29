@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String       @id @default(cuid())
+  name        String?
+  email       String       @unique
+  password    String
+  tier        String       @default("free")
+  createdAt   DateTime     @default(now())
+  extractions Extraction[]
+  usageLogs   UsageLog[]
+}
+
+model Extraction {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  inputText  String
+  schemaName String
+  schemaDef  String
+  result     String
+  tokensUsed Int
+  latencyMs  Float
+  createdAt  DateTime @default(now())
+}
+
+model UsageLog {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  tokens     Int
+  latencyMs  Float
+  schemaName String
+  createdAt  DateTime @default(now())
+}
