@@ -9,10 +9,11 @@ from pydantic import BaseModel
 
 from schemas import SCHEMAS
 
-SGLANG_URL = os.getenv("SGLANG_URL", "http://localhost:30000")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
 
 app = FastAPI()
-app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:3000"], allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 
 class ExtractRequest(BaseModel):
@@ -23,26 +24,34 @@ class ExtractRequest(BaseModel):
 
 @app.post("/extract")
 async def extract(req: ExtractRequest):
+    if not GROQ_API_KEY:
+        raise HTTPException(500, "GROQ_API_KEY not configured")
+
     schema = req.custom_schema or SCHEMAS.get(req.schema_name)
     if not schema:
         raise HTTPException(400, "Provide a valid schema_name or custom_schema")
 
+    schema_str = json.dumps(schema, indent=2)
     start = time.time()
+
     async with httpx.AsyncClient(timeout=120) as client:
         resp = await client.post(
-            f"{SGLANG_URL}/v1/chat/completions",
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={"Authorization": f"Bearer {GROQ_API_KEY}"},
             json={
-                "model": "default",
+                "model": GROQ_MODEL,
                 "messages": [
-                    {"role": "system", "content": "Extract structured data from the text. Return only valid JSON."},
+                    {"role": "system", "content": f"Extract structured data from the text. Return ONLY valid JSON matching this schema:\n{schema_str}"},
                     {"role": "user", "content": req.text},
                 ],
-                "response_format": {"type": "json_schema", "json_schema": {"name": "extraction", "schema": schema}},
+                "response_format": {"type": "json_object"},
                 "max_tokens": 2048,
+                "temperature": 0,
             },
         )
+
     if resp.status_code != 200:
-        raise HTTPException(502, f"SGLang error: {resp.text}")
+        raise HTTPException(502, f"Groq API error: {resp.text}")
 
     data = resp.json()
     latency_ms = (time.time() - start) * 1000
