@@ -351,11 +351,13 @@ body {
   transform: translateY(40px);
   opacity: 0;
   transition: transform 0.7s var(--ease-out-expo), opacity 0.5s;
+  overflow: visible;
 }
 
 .menu-overlay.open .menu-nav-link-inner {
   transform: translateY(0);
   opacity: 1;
+  overflow: visible;
 }
 
 .menu-overlay.open .menu-nav-link:nth-child(1) .menu-nav-link-inner { transition-delay: 0.15s; }
