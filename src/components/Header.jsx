@@ -61,6 +61,7 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [email, setEmail] = useState('');
   const headerRef = useRef(null);
+  const menuRef = useRef(null);
 
   /* Scroll detection for header background */
   useEffect(() => {
@@ -72,6 +73,29 @@ export default function Header() {
   /* Lock body scroll when menu open */
   useEffect(() => {
     document.body.style.overflow = menuOpen ? 'hidden' : '';
+    // Stop Lenis smooth scroll when menu is open
+    if (typeof window !== 'undefined' && window.__lenis) {
+      if (menuOpen) {
+        window.__lenis.stop();
+      } else {
+        window.__lenis.start();
+      }
+    }
+
+    // Force native scroll on menu overlay
+    const menu = menuRef.current;
+    if (menu && menuOpen) {
+      const onWheel = (e) => {
+        e.stopPropagation();
+        menu.scrollTop += e.deltaY;
+      };
+      menu.addEventListener('wheel', onWheel, { passive: false });
+      return () => {
+        menu.removeEventListener('wheel', onWheel);
+        document.body.style.overflow = '';
+      };
+    }
+
     return () => { document.body.style.overflow = ''; };
   }, [menuOpen]);
 
@@ -146,7 +170,11 @@ export default function Header() {
       </header>
 
       {/* ── Fullscreen Menu Overlay ───────────────────────── */}
-      <nav className={`menu-overlay ${menuOpen ? 'open' : ''}`} aria-hidden={!menuOpen}>
+      <nav
+        ref={menuRef}
+        className={`menu-overlay ${menuOpen ? 'open' : ''}`}
+        aria-hidden={!menuOpen}
+      >
         <div className="menu-overlay-inner">
 
           {/* Nav links */}

@@ -309,7 +309,36 @@ body {
   clip-path: inset(0 0 100% 0);
   transition: clip-path 0.8s var(--ease-in-out-quart);
   pointer-events: none;
-  overflow: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar for menu overlay */
+.menu-overlay::-webkit-scrollbar {
+  width: 6px;
+}
+
+.menu-overlay::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 3px;
+}
+
+.menu-overlay::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 3px;
+  transition: background 0.3s;
+}
+
+.menu-overlay::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Firefox scrollbar */
+.menu-overlay {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) rgba(255, 255, 255, 0.02);
 }
 
 .menu-overlay.open {
@@ -351,13 +380,11 @@ body {
   transform: translateY(40px);
   opacity: 0;
   transition: transform 0.7s var(--ease-out-expo), opacity 0.5s;
-  overflow: visible;
 }
 
 .menu-overlay.open .menu-nav-link-inner {
   transform: translateY(0);
   opacity: 1;
-  overflow: visible;
 }
 
 .menu-overlay.open .menu-nav-link:nth-child(1) .menu-nav-link-inner { transition-delay: 0.15s; }
@@ -379,7 +406,7 @@ body {
 /* Clone text hover effect */
 .menu-link-text-wrap {
   position: relative;
-  height: 1.1em;
+  height: clamp(2.4rem, 6vw, 4.8rem);
   overflow: hidden;
 }
 
@@ -389,7 +416,7 @@ body {
   font-size: clamp(2rem, 5vw, 4rem);
   font-weight: 600;
   letter-spacing: -0.02em;
-  line-height: 1.1;
+  line-height: 1.2;
   transition: transform 0.5s var(--ease-out-expo);
 }
 
